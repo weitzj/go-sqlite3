@@ -11,7 +11,7 @@ package sqlite3
 // code for SQLite custom functions is in here.
 
 /*
-#include <sqlite3-binding.h>
+#include <sqlite3.h>
 #include <stdlib.h>
 
 void _sqlite3_result_text(sqlite3_context* ctx, const char* s);
