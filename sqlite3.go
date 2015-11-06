@@ -10,7 +10,7 @@ package sqlite3
 #cgo CFLAGS: -I${SRCDIR}/include
 #cgo CFLAGS: -DSQLITE_ENABLE_RTREE -DSQLITE_THREADSAFE
 #cgo CFLAGS: -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_FTS4_UNICODE61
-#cgo LDFLAGS: -L${SRCDIR}/libs/armeabi-v7a -lspatialite
+#cgo android,arm LDFLAGS: -L${SRCDIR}/libs/android/armeabi-v7a -lspatialite
 #include <spatialite/sqlite.h>
 #include <spatialite.h>
 #include <stdlib.h>
