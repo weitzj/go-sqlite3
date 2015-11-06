@@ -65,7 +65,6 @@ the terms of any one of the MPL, the GPL or the LGPL.
 #define _GAIAGEO_H
 #endif
 
-#include "sqlite.h"
 #include "gg_const.h"
 #include "gg_structs.h"
 #include "gg_core.h"
