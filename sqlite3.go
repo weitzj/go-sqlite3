@@ -11,6 +11,7 @@ package sqlite3
 #cgo CFLAGS: -DSQLITE_ENABLE_RTREE -DSQLITE_THREADSAFE
 #cgo CFLAGS: -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_FTS4_UNICODE61
 #cgo LDFLAGS: -L${SRCDIR}/libs/armeabi-v7a -lspatialite
+#include <spatialite.h>
 #include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
@@ -139,6 +140,7 @@ type SQLiteConn struct {
 	txlock      string
 	funcs       []*functionInfo
 	aggregators []*aggInfo
+	cachePtr    *C.void
 }
 
 // Tx struct.
@@ -669,12 +671,18 @@ func (d *SQLiteDriver) Open(dsn string) (driver.Conn, error) {
 		return nil, errors.New("sqlite succeeded without returning a database")
 	}
 
+	// void pointer
+	var cache *C.void
+	cache = (*C.void)(unsafe.Pointer(C.spatialite_alloc_connection()))
+
+	C.spatialite_init_ex(db, unsafe.Pointer(cache), C.int(0))
+
 	rv = C.sqlite3_busy_timeout(db, C.int(busy_timeout))
 	if rv != C.SQLITE_OK {
 		return nil, Error{Code: ErrNo(rv)}
 	}
 
-	conn := &SQLiteConn{db: db, loc: loc, txlock: txlock}
+	conn := &SQLiteConn{db: db, loc: loc, txlock: txlock, cachePtr: cache}
 
 	if len(d.Extensions) > 0 {
 		if err := conn.loadExtensions(d.Extensions); err != nil {
