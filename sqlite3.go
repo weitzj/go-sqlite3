@@ -706,6 +706,10 @@ func (c *SQLiteConn) Close() error {
 		return c.lastError()
 	}
 	c.db = nil
+	if c.cachePtr != nil {
+		C.spatialite_cleanup_ex(unsafe.Pointer(c.cachePtr))
+		c.cachePtr = nil
+	}
 	runtime.SetFinalizer(c, nil)
 	return nil
 }
