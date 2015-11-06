@@ -7,9 +7,10 @@ package sqlite3
 
 /*
 #cgo CFLAGS: -std=gnu99
-#cgo CFLAGS: -I${SRCDIR}/include
 #cgo CFLAGS: -DSQLITE_ENABLE_RTREE -DSQLITE_THREADSAFE
 #cgo CFLAGS: -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_FTS4_UNICODE61
+#cgo darwin LDFLAGS: -lspatialite -lsqlite3
+#cgo android CFLAGS: -I${SRCDIR}/include
 #cgo android,arm LDFLAGS: -L${SRCDIR}/libs/android/armeabi-v7a -lspatialite
 #include <spatialite/sqlite.h>
 #include <spatialite.h>
@@ -683,12 +684,6 @@ func (d *SQLiteDriver) Open(dsn string) (driver.Conn, error) {
 	}
 
 	conn := &SQLiteConn{db: db, loc: loc, txlock: txlock, cachePtr: cache}
-
-	if len(d.Extensions) > 0 {
-		if err := conn.loadExtensions(d.Extensions); err != nil {
-			return nil, err
-		}
-	}
 
 	if d.ConnectHook != nil {
 		if err := d.ConnectHook(conn); err != nil {
