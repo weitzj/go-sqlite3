@@ -11,8 +11,8 @@ package sqlite3
 #cgo CFLAGS: -DSQLITE_ENABLE_RTREE -DSQLITE_THREADSAFE
 #cgo CFLAGS: -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_FTS4_UNICODE61
 #cgo LDFLAGS: -L${SRCDIR}/libs/armeabi-v7a -lspatialite
+#include <spatialite/sqlite.h>
 #include <spatialite.h>
-#include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
 
