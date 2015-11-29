@@ -8,7 +8,7 @@ package sqlite3
 /*
 #cgo CFLAGS: -I${SRCDIR}/include
 #cgo android,arm LDFLAGS: -L${SRCDIR}/libs/android/armeabi-v7a -lspatialite
-#cgo darwin LDFLAGS: -lspatialite -lsqlite3
+#cgo darwin LDFLAGS: -L/usr/local/lib -lspatialite -lsqlite3
 #include <spatialite/sqlite.h>
 #include <spatialite.h>
 #include <stdlib.h>
