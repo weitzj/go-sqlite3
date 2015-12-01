@@ -8,7 +8,7 @@ package sqlite3
 /*
 #cgo CFLAGS: -I${SRCDIR}/include
 #cgo android,arm LDFLAGS: -L${SRCDIR}/libs/android/armeabi-v7a -lspatialite
-#cgo darwin LDFLAGS: -L/usr/local/lib -lspatialite -lsqlite3
+#cgo darwin LDFLAGS: -L${SRCDIR}/libs/darwin/amd64 -lspatialite -lsqlite3
 #include <spatialite/sqlite.h>
 #include <spatialite.h>
 #include <stdlib.h>
@@ -138,7 +138,6 @@ type SQLiteConn struct {
 	txlock      string
 	funcs       []*functionInfo
 	aggregators []*aggInfo
-	cachePtr    *C.void
 }
 
 // Tx struct.
@@ -654,6 +653,8 @@ func (d *SQLiteDriver) Open(dsn string) (driver.Conn, error) {
 		}
 	}
 
+	// TODO: use spatialite_init_ex
+	C.spatialite_init(0)
 	var db *C.sqlite3
 	name := C.CString(dsn)
 	defer C.free(unsafe.Pointer(name))
@@ -669,18 +670,12 @@ func (d *SQLiteDriver) Open(dsn string) (driver.Conn, error) {
 		return nil, errors.New("sqlite succeeded without returning a database")
 	}
 
-	// void pointer
-	var cache *C.void
-	cache = (*C.void)(unsafe.Pointer(C.spatialite_alloc_connection()))
-
-	C.spatialite_init_ex(db, unsafe.Pointer(cache), C.int(0))
-
 	rv = C.sqlite3_busy_timeout(db, C.int(busy_timeout))
 	if rv != C.SQLITE_OK {
 		return nil, Error{Code: ErrNo(rv)}
 	}
 
-	conn := &SQLiteConn{db: db, loc: loc, txlock: txlock, cachePtr: cache}
+	conn := &SQLiteConn{db: db, loc: loc, txlock: txlock}
 
 	if d.ConnectHook != nil {
 		if err := d.ConnectHook(conn); err != nil {
@@ -698,10 +693,7 @@ func (c *SQLiteConn) Close() error {
 		return c.lastError()
 	}
 	c.db = nil
-	if c.cachePtr != nil {
-		C.spatialite_cleanup_ex(unsafe.Pointer(c.cachePtr))
-		c.cachePtr = nil
-	}
+	C.spatialite_cleanup()
 	runtime.SetFinalizer(c, nil)
 	return nil
 }
