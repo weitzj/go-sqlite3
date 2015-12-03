@@ -47,6 +47,20 @@ _sqlite3_bind_blob(sqlite3_stmt *stmt, int n, void *p, int np) {
 
 #include <stdio.h>
 #include <stdint.h>
+static int _spatial_init(const char *filename, sqlite3 **ppDb, void **spatial, int flags, const char *zVfs) {
+	int ret;
+	ret = sqlite3_open_v2(filename, ppDb, flags, zVfs);
+	if (ret != SQLITE_OK) {
+		return -1;
+	}
+	spatial = spatialite_alloc_connection();
+	spatialite_init_ex((*ppDb), (*spatial), 0);
+	return ret;
+}
+
+static void _spatialite_cleanup_ex(void **ptr) {
+	spatialite_cleanup_ex((*ptr));
+}
 
 static int
 _sqlite3_exec(sqlite3* db, const char* pcmd, long long* rowid, long long* changes)
@@ -75,6 +89,9 @@ void _sqlite3_result_blob(sqlite3_context* ctx, const void* b, int l) {
   sqlite3_result_blob(ctx, b, l, SQLITE_TRANSIENT);
 }
 
+void _spatialite_init_ex(sqlite3 *db) {
+}
+
 void callbackTrampoline(sqlite3_context*, int, sqlite3_value**);
 void stepTrampoline(sqlite3_context*, int, sqlite3_value**);
 void doneTrampoline(sqlite3_context*);
@@ -86,6 +103,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/url"
 	"reflect"
 	"runtime"
@@ -138,6 +156,7 @@ type SQLiteConn struct {
 	txlock      string
 	funcs       []*functionInfo
 	aggregators []*aggInfo
+	spatial     *unsafe.Pointer
 }
 
 // Tx struct.
@@ -581,7 +600,8 @@ func (c *SQLiteConn) Begin() (driver.Tx, error) {
 }
 
 func errorString(err Error) string {
-	return C.GoString(C.sqlite3_errstr(C.int(err.Code)))
+	return "blub"
+	// return C.GoString(C.sqlite3_errstr(C.int(err.Code)))
 }
 
 // Open database and return a new connection.
@@ -654,16 +674,17 @@ func (d *SQLiteDriver) Open(dsn string) (driver.Conn, error) {
 	}
 
 	// TODO: use spatialite_init_ex
-	C.spatialite_init(0)
 	var db *C.sqlite3
+	var spatial *unsafe.Pointer
 	name := C.CString(dsn)
 	defer C.free(unsafe.Pointer(name))
-	rv := C._sqlite3_open_v2(name, &db,
+	rv := C._spatial_init(name, &db, spatial,
 		C.SQLITE_OPEN_FULLMUTEX|
 			C.SQLITE_OPEN_READWRITE|
 			C.SQLITE_OPEN_CREATE,
 		nil)
 	if rv != 0 {
+		log.Println("error")
 		return nil, Error{Code: ErrNo(rv)}
 	}
 	if db == nil {
@@ -675,7 +696,7 @@ func (d *SQLiteDriver) Open(dsn string) (driver.Conn, error) {
 		return nil, Error{Code: ErrNo(rv)}
 	}
 
-	conn := &SQLiteConn{db: db, loc: loc, txlock: txlock}
+	conn := &SQLiteConn{db: db, loc: loc, txlock: txlock, spatial: spatial}
 
 	if d.ConnectHook != nil {
 		if err := d.ConnectHook(conn); err != nil {
@@ -693,7 +714,10 @@ func (c *SQLiteConn) Close() error {
 		return c.lastError()
 	}
 	c.db = nil
-	C.spatialite_cleanup()
+	if c.spatial != nil {
+		C._spatialite_cleanup_ex(c.spatial)
+	}
+	c.spatial = nil
 	runtime.SetFinalizer(c, nil)
 	return nil
 }

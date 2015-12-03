@@ -17,7 +17,7 @@ old_library=''
 inherited_linker_flags='  -pthread'
 
 # Libraries that this one depends upon.
-dependency_libs=' -L/Users/weitz/Documents/work/spatial/darwin/amd64/lib /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libxml2.la /Users/weitz/Documents/work/spatial/darwin/amd64/lib/liblzma.la -L/Users/weitz/Documents/work/spatial/jni/libiconv-1.13.1/lib -ldl -liconv /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libproj.la -lpthread -lm -lz -lsqlite3 /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libgeos_c.la /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libgeos.la'
+dependency_libs=' -L/Users/weitz/Documents/work/spatial/darwin/amd64/lib /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libxml2.la /Users/weitz/Documents/work/spatial/darwin/amd64/lib/liblzma.la -L/Users/weitz/Documents/work/spatial/jni/libiconv-1.13.1/lib -ldl -liconv /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libproj.la -lpthread -lm -lz /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libsqlite3.la /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libgeos_c.la /Users/weitz/Documents/work/spatial/darwin/amd64/lib/libgeos.la'
 
 # Names of additional weak libraries provided by this library
 weak_library_names=''
